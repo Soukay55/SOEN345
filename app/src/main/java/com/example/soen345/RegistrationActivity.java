@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.UUID;
@@ -37,25 +38,33 @@ public class RegistrationActivity extends AppCompatActivity {
         });
     }
 
+    @VisibleForTesting
+    public void setFirestore(FirebaseFirestore firestore) {
+        this.db = firestore;
+    }
+
+    public static boolean isInputValid(String email, String phone) {
+        if (email.isEmpty() && phone.isEmpty()) return false;
+        if (!email.isEmpty() && !email.contains("@")) return false;
+        if (!phone.isEmpty() && phone.length() < 10) return false;
+        return true;
+    }
+
     private void performRegistration() {
         String email = emailInput.getText().toString().trim();
         String phone = phoneInput.getText().toString().trim();
         boolean isAdmin = adminBox.isChecked();
 
-        if (email.isEmpty() && phone.isEmpty()) {
-            Toast.makeText(this, "Please enter an email or phone number", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!email.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailInput.setError("Please enter a valid email address");
-            emailInput.requestFocus();
-            return;
-        }
-
-        if (!phone.isEmpty() && phone.length() < 10) {
-            phoneInput.setError("Please enter a valid phone number");
-            phoneInput.requestFocus();
+        if (!isInputValid(email, phone)) {
+            if (email.isEmpty() && phone.isEmpty()) {
+                Toast.makeText(this, "Please enter an email or phone number", Toast.LENGTH_SHORT).show();
+            } else if (!email.isEmpty() && !email.contains("@")) {
+                emailInput.setError("Please enter a valid email address");
+                emailInput.requestFocus();
+            } else if (!phone.isEmpty() && phone.length() < 10) {
+                phoneInput.setError("Please enter a valid phone number");
+                phoneInput.requestFocus();
+            }
             return;
         }
 
@@ -97,10 +106,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
         db.collection("users").document(userId).set(newUser)
                 .addOnSuccessListener(aVoid -> {
-                    // SUCCESS: Database confirmed the data is saved
                     Toast.makeText(this, "Account Created! Redirecting...", Toast.LENGTH_SHORT).show();
-
-                    // AUTOMATIC NAVIGATION TO LOGIN
                     Intent intent = new Intent(RegistrationActivity.this, LoginActivity.class);
                     startActivity(intent);
                     finish();
