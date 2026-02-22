@@ -85,25 +85,16 @@ public class EventListActivity extends AppCompatActivity {
     }
 
     private void applyFilters() {
-        String search   = searchInput.getText().toString().trim().toLowerCase();
-        String date     = filterDate.getText().toString().trim().toLowerCase();
-        String location = filterLocation.getText().toString().trim().toLowerCase();
-        String category = filterCategory.getText().toString().trim().toLowerCase();
+        String search   = searchInput.getText().toString();
+        String date     = filterDate.getText().toString();
+        String location = filterLocation.getText().toString();
+        String category = filterCategory.getText().toString();
 
-        filtersActive = !search.isEmpty() || !date.isEmpty() || !location.isEmpty() || !category.isEmpty();
+        filtersActive = !search.trim().isEmpty() || !date.trim().isEmpty()
+                || !location.trim().isEmpty() || !category.trim().isEmpty();
 
         filteredEvents.clear();
-
-        for (Event event : allEvents) {
-            boolean matchesSearch   = TextUtils.isEmpty(search)   || event.getTitle().toLowerCase().contains(search);
-            boolean matchesDate     = TextUtils.isEmpty(date)     || event.getDate().toLowerCase().contains(date);
-            boolean matchesLocation = TextUtils.isEmpty(location) || event.getLocation().toLowerCase().contains(location);
-            boolean matchesCategory = TextUtils.isEmpty(category) || event.getCategory().toLowerCase().contains(category);
-
-            if (matchesSearch && matchesDate && matchesLocation && matchesCategory) {
-                filteredEvents.add(event);
-            }
-        }
+        filteredEvents.addAll(filterEvents(allEvents, search, date, location, category));
 
         adapter.notifyDataSetChanged();
         updateEmptyState();
@@ -132,6 +123,33 @@ public class EventListActivity extends AppCompatActivity {
             emptyText.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
+    }
+
+    static List<Event> filterEvents(
+            List<Event> allEvents,
+            String search,
+            String date,
+            String location,
+            String category
+    ) {
+        String s = search == null ? "" : search.trim().toLowerCase();
+        String d = date == null ? "" : date.trim().toLowerCase();
+        String l = location == null ? "" : location.trim().toLowerCase();
+        String c = category == null ? "" : category.trim().toLowerCase();
+
+        List<Event> out = new ArrayList<>();
+
+        for (Event event : allEvents) {
+            boolean matchesSearch   = TextUtils.isEmpty(s) || event.getTitle().toLowerCase().contains(s);
+            boolean matchesDate     = TextUtils.isEmpty(d) || event.getDate().toLowerCase().contains(d);
+            boolean matchesLocation = TextUtils.isEmpty(l) || event.getLocation().toLowerCase().contains(l);
+            boolean matchesCategory = TextUtils.isEmpty(c) || event.getCategory().toLowerCase().contains(c);
+
+            if (matchesSearch && matchesDate && matchesLocation && matchesCategory) {
+                out.add(event);
+            }
+        }
+        return out;
     }
 }
 
