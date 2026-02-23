@@ -60,6 +60,7 @@ public class EventListActivityFilterTest {
         }
     }
 
+
     @Test
     public void filterByCategory_onlyMusicReturned() {
         List<Event> out = EventListActivity.filterEvents(
