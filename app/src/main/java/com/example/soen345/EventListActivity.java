@@ -132,18 +132,18 @@ public class EventListActivity extends AppCompatActivity {
             String location,
             String category
     ) {
-        String s = search == null ? "" : search.trim().toLowerCase();
-        String d = date == null ? "" : date.trim().toLowerCase();
-        String l = location == null ? "" : location.trim().toLowerCase();
-        String c = category == null ? "" : category.trim().toLowerCase();
+        String s = (search == null) ? "" : search.trim().toLowerCase();
+        String d = (date == null) ? "" : date.trim().toLowerCase();
+        String l = (location == null) ? "" : location.trim().toLowerCase();
+        String c = (category == null) ? "" : category.trim().toLowerCase();
 
         List<Event> out = new ArrayList<>();
 
         for (Event event : allEvents) {
-            boolean matchesSearch   = TextUtils.isEmpty(s) || event.getTitle().toLowerCase().contains(s);
-            boolean matchesDate     = TextUtils.isEmpty(d) || event.getDate().toLowerCase().contains(d);
-            boolean matchesLocation = TextUtils.isEmpty(l) || event.getLocation().toLowerCase().contains(l);
-            boolean matchesCategory = TextUtils.isEmpty(c) || event.getCategory().toLowerCase().contains(c);
+            boolean matchesSearch   = s.isEmpty() || event.getTitle().toLowerCase().contains(s);
+            boolean matchesDate     = d.isEmpty() || event.getDate().toLowerCase().contains(d);
+            boolean matchesLocation = l.isEmpty() || event.getLocation().toLowerCase().contains(l);
+            boolean matchesCategory = c.isEmpty() || event.getCategory().toLowerCase().contains(c);
 
             if (matchesSearch && matchesDate && matchesLocation && matchesCategory) {
                 out.add(event);
