@@ -22,15 +22,9 @@ public class EventListActivity extends AppCompatActivity {
     private TextView emptyText;
     private ProgressBar loadingSpinner;
     private EventAdapter adapter;
-
-    // Full list loaded from Firestore (never modified)
     private final List<Event> allEvents = new ArrayList<>();
-    // Filtered list shown in the RecyclerView
     private final List<Event> filteredEvents = new ArrayList<>();
-
     private EditText searchInput, filterDate, filterLocation, filterCategory;
-
-    // Track whether filters are currently active
     private boolean filtersActive = false;
 
     @Override
@@ -54,7 +48,11 @@ public class EventListActivity extends AppCompatActivity {
         findViewById(R.id.btnApplyFilters).setOnClickListener(v -> applyFilters());
         findViewById(R.id.btnClearFilters).setOnClickListener(v -> clearFilters());
 
-        loadEvents();
+        loadingSpinner.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.GONE);
+        emptyText.setVisibility(View.GONE);
+
+        DataSeeder.seedEventsAndTestUser(db, this::loadEvents);
     }
 
     private void loadEvents() {
@@ -76,7 +74,6 @@ public class EventListActivity extends AppCompatActivity {
                 adapter.notifyDataSetChanged();
                 updateEmptyState();
             } else {
-                // Network or permission error
                 Toast.makeText(this, "Failed to load events. Check your connection.", Toast.LENGTH_LONG).show();
                 emptyText.setText("Could not load events.");
                 emptyText.setVisibility(View.VISIBLE);
@@ -115,7 +112,6 @@ public class EventListActivity extends AppCompatActivity {
 
     private void updateEmptyState() {
         if (filteredEvents.isEmpty()) {
-            // Different message depending on whether filters are active
             emptyText.setText(filtersActive ? "No results found." : "No events available.");
             emptyText.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
@@ -152,8 +148,3 @@ public class EventListActivity extends AppCompatActivity {
         return out;
     }
 }
-
-
-
-
-
