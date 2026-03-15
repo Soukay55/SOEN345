@@ -1,17 +1,20 @@
 package com.example.soen345;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,12 +41,12 @@ public class EventListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
-        db             = FirebaseFirestore.getInstance();
-        recyclerView   = findViewById(R.id.eventsRecyclerView);
-        emptyText      = findViewById(R.id.emptyText);
+        db = FirebaseFirestore.getInstance();
+        recyclerView = findViewById(R.id.eventsRecyclerView);
+        emptyText = findViewById(R.id.emptyText);
         loadingSpinner = findViewById(R.id.loadingSpinner);
-        searchInput    = findViewById(R.id.searchInput);
-        filterDate     = findViewById(R.id.filterDate);
+        searchInput = findViewById(R.id.searchInput);
+        filterDate = findViewById(R.id.filterDate);
         filterLocation = findViewById(R.id.filterLocation);
         filterCategory = findViewById(R.id.filterCategory);
 
@@ -54,6 +57,17 @@ public class EventListActivity extends AppCompatActivity {
         findViewById(R.id.btnApplyFilters).setOnClickListener(v -> applyFilters());
         findViewById(R.id.btnClearFilters).setOnClickListener(v -> clearFilters());
 
+        findViewById(R.id.btnAddEvent).setOnClickListener(v -> {
+            Intent intent = new Intent(EventListActivity.this, AddEventActivity.class);
+            startActivity(intent);
+        });
+
+        loadEvents();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadEvents();
     }
 
@@ -64,20 +78,25 @@ public class EventListActivity extends AppCompatActivity {
 
         db.collection("events").get().addOnCompleteListener(task -> {
             loadingSpinner.setVisibility(View.GONE);
+
             if (task.isSuccessful()) {
                 allEvents.clear();
+
                 for (QueryDocumentSnapshot doc : task.getResult()) {
                     Event event = doc.toObject(Event.class);
                     event.setId(doc.getId());
                     allEvents.add(event);
                 }
+
+                Toast.makeText(this, "Loaded events: " + allEvents.size(), Toast.LENGTH_LONG).show();
+
                 filteredEvents.clear();
                 filteredEvents.addAll(allEvents);
                 adapter.notifyDataSetChanged();
                 updateEmptyState();
             } else {
-                // Network or permission error
-                Toast.makeText(this, "Failed to load events. Check your connection.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Failed to load events: " +
+                        task.getException().getMessage(), Toast.LENGTH_LONG).show();
                 emptyText.setText("Could not load events.");
                 emptyText.setVisibility(View.VISIBLE);
             }
@@ -85,8 +104,8 @@ public class EventListActivity extends AppCompatActivity {
     }
 
     private void applyFilters() {
-        String search   = searchInput.getText().toString();
-        String date     = filterDate.getText().toString();
+        String search = searchInput.getText().toString();
+        String date = filterDate.getText().toString();
         String location = filterLocation.getText().toString();
         String category = filterCategory.getText().toString();
 
@@ -115,7 +134,6 @@ public class EventListActivity extends AppCompatActivity {
 
     private void updateEmptyState() {
         if (filteredEvents.isEmpty()) {
-            // Different message depending on whether filters are active
             emptyText.setText(filtersActive ? "No results found." : "No events available.");
             emptyText.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
@@ -140,10 +158,15 @@ public class EventListActivity extends AppCompatActivity {
         List<Event> out = new ArrayList<>();
 
         for (Event event : allEvents) {
-            boolean matchesSearch   = s.isEmpty() || event.getTitle().toLowerCase().contains(s);
-            boolean matchesDate     = d.isEmpty() || event.getDate().toLowerCase().contains(d);
-            boolean matchesLocation = l.isEmpty() || event.getLocation().toLowerCase().contains(l);
-            boolean matchesCategory = c.isEmpty() || event.getCategory().toLowerCase().contains(c);
+            String title = event.getTitle() == null ? "" : event.getTitle().toLowerCase();
+            String eventDate = event.getDate() == null ? "" : event.getDate().toLowerCase();
+            String eventLocation = event.getLocation() == null ? "" : event.getLocation().toLowerCase();
+            String eventCategory = event.getCategory() == null ? "" : event.getCategory().toLowerCase();
+
+            boolean matchesSearch = s.isEmpty() || title.contains(s);
+            boolean matchesDate = d.isEmpty() || eventDate.contains(d);
+            boolean matchesLocation = l.isEmpty() || eventLocation.contains(l);
+            boolean matchesCategory = c.isEmpty() || eventCategory.contains(c);
 
             if (matchesSearch && matchesDate && matchesLocation && matchesCategory) {
                 out.add(event);
@@ -152,8 +175,3 @@ public class EventListActivity extends AppCompatActivity {
         return out;
     }
 }
-
-
-
-
-

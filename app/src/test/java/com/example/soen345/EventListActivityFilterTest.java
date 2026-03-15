@@ -54,12 +54,11 @@ public class EventListActivityFilterTest {
                 ""
         );
 
-        assertEquals(3, out.size()); // Jazz Night, Food & Wine Fest, Rock Concert
+        assertEquals(3, out.size());
         for (Event e : out) {
             assertTrue(e.getLocation().toLowerCase().contains("montreal"));
         }
     }
-
 
     @Test
     public void filterByCategory_onlyMusicReturned() {
@@ -79,7 +78,6 @@ public class EventListActivityFilterTest {
 
     @Test
     public void combinedFilters_ANDLogic() {
-        // Must match all: title contains "fest", location contains "montreal", category contains "food"
         List<Event> out = EventListActivity.filterEvents(
                 sampleEvents(),
                 "fest",
@@ -111,5 +109,59 @@ public class EventListActivityFilterTest {
         List<Event> out = EventListActivity.filterEvents(all, "", "", "", "");
 
         assertEquals(all.size(), out.size());
+    }
+
+    @Test
+    public void filters_areCaseInsensitive() {
+        List<Event> out = EventListActivity.filterEvents(
+                sampleEvents(),
+                "JAZZ",
+                "2026-03-15",
+                "MONTREAL",
+                "MUSIC"
+        );
+
+        assertEquals(1, out.size());
+        assertEquals("Jazz Night", out.get(0).getTitle());
+    }
+
+    @Test
+    public void nullFilterInputs_returnAllEvents() {
+        List<Event> all = sampleEvents();
+        List<Event> out = EventListActivity.filterEvents(all, null, null, null, null);
+
+        assertEquals(all.size(), out.size());
+    }
+
+    @Test
+    public void eventWithNullFields_doesNotCrash() {
+        List<Event> events = Arrays.asList(
+                new Event("1", null, null, null, null),
+                new Event("2", "Hackathon", "2026-07-01", "Montreal", "Technology")
+        );
+
+        List<Event> out = EventListActivity.filterEvents(
+                events,
+                "hack",
+                "",
+                "",
+                ""
+        );
+
+        assertEquals(1, out.size());
+        assertEquals("Hackathon", out.get(0).getTitle());
+    }
+
+    @Test
+    public void multipleFilters_noMatch_returnsEmptyList() {
+        List<Event> out = EventListActivity.filterEvents(
+                sampleEvents(),
+                "tech",
+                "",
+                "toronto",
+                "music"
+        );
+
+        assertTrue(out.isEmpty());
     }
 }
