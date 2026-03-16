@@ -50,7 +50,18 @@ public class EventListActivity extends AppCompatActivity {
 
         isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
 
-        adapter = new EventAdapter(filteredEvents, isAdmin, this::showDeleteConfirmation);
+        adapter = new EventAdapter(filteredEvents, isAdmin, new EventAdapter.OnEventActionListener() {
+            @Override
+            public void onEditClick(Event event) {
+                openEditEventScreen(event);
+            }
+
+            @Override
+            public void onDeleteClick(Event event) {
+                showDeleteConfirmation(event);
+            }
+        });
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -107,6 +118,16 @@ public class EventListActivity extends AppCompatActivity {
                 emptyText.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    private void openEditEventScreen(Event event) {
+        Intent intent = new Intent(EventListActivity.this, EditEventActivity.class);
+        intent.putExtra("eventId", event.getId());
+        intent.putExtra("title", event.getTitle());
+        intent.putExtra("date", event.getDate());
+        intent.putExtra("location", event.getLocation());
+        intent.putExtra("category", event.getCategory());
+        startActivity(intent);
     }
 
     private void showDeleteConfirmation(Event event) {
@@ -238,5 +259,34 @@ public class EventListActivity extends AppCompatActivity {
         return updated;
     }
 
+    static boolean canEditEvent(boolean isAdmin, Event event) {
+        return isAdmin
+                && event != null
+                && event.getId() != null
+                && !event.getId().trim().isEmpty();
+    }
 
+    static List<Event> updateEventInList(List<Event> events, Event updatedEvent) {
+        List<Event> updated = new ArrayList<>();
+
+        if (events == null) {
+            return updated;
+        }
+
+        for (Event event : events) {
+            if (event == null) {
+                continue;
+            }
+
+            if (updatedEvent != null
+                    && updatedEvent.getId() != null
+                    && updatedEvent.getId().equals(event.getId())) {
+                updated.add(updatedEvent);
+            } else {
+                updated.add(event);
+            }
+        }
+
+        return updated;
+    }
 }

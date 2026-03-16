@@ -13,18 +13,19 @@ import java.util.List;
 
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
-    public interface OnDeleteClickListener {
+    public interface OnEventActionListener {
+        void onEditClick(Event event);
         void onDeleteClick(Event event);
     }
 
     private final List<Event> events;
     private final boolean isAdmin;
-    private final OnDeleteClickListener deleteClickListener;
+    private final OnEventActionListener actionListener;
 
-    public EventAdapter(List<Event> events, boolean isAdmin, OnDeleteClickListener deleteClickListener) {
+    public EventAdapter(List<Event> events, boolean isAdmin, OnEventActionListener actionListener) {
         this.events = events;
         this.isAdmin = isAdmin;
-        this.deleteClickListener = deleteClickListener;
+        this.actionListener = actionListener;
     }
 
     @NonNull
@@ -45,9 +46,13 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.category.setText(event.getCategory());
 
         if (isAdmin) {
+            holder.btnEditEvent.setVisibility(View.VISIBLE);
             holder.btnDeleteEvent.setVisibility(View.VISIBLE);
-            holder.btnDeleteEvent.setOnClickListener(v -> deleteClickListener.onDeleteClick(event));
+
+            holder.btnEditEvent.setOnClickListener(v -> actionListener.onEditClick(event));
+            holder.btnDeleteEvent.setOnClickListener(v -> actionListener.onDeleteClick(event));
         } else {
+            holder.btnEditEvent.setVisibility(View.GONE);
             holder.btnDeleteEvent.setVisibility(View.GONE);
         }
     }
@@ -59,7 +64,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
 
     static class EventViewHolder extends RecyclerView.ViewHolder {
         TextView title, date, location, category;
-        Button btnDeleteEvent;
+        Button btnEditEvent, btnDeleteEvent;
 
         EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -67,8 +72,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             date = itemView.findViewById(R.id.eventDate);
             location = itemView.findViewById(R.id.eventLocation);
             category = itemView.findViewById(R.id.eventCategory);
+            btnEditEvent = itemView.findViewById(R.id.btnEditEvent);
             btnDeleteEvent = itemView.findViewById(R.id.btnDeleteEvent);
         }
     }
 }
-
