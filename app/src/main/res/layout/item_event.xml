@@ -44,6 +44,14 @@
             android:textStyle="italic" />
 
         <Button
+            android:id="@+id/btnEditEvent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Edit Event"
+            android:visibility="gone" />
+
+        <Button
             android:id="@+id/btnDeleteEvent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -54,4 +62,3 @@
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
-
