@@ -43,6 +43,14 @@
             android:textSize="12sp"
             android:textStyle="italic" />
 
+        <Button
+            android:id="@+id/btnDeleteEvent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Delete Event"
+            android:visibility="gone" />
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>
