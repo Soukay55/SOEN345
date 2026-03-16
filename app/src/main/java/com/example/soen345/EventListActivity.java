@@ -36,8 +36,11 @@ public class EventListActivity extends AppCompatActivity {
     // Track whether filters are currently active
     private boolean filtersActive = false;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
@@ -57,7 +60,14 @@ public class EventListActivity extends AppCompatActivity {
         findViewById(R.id.btnApplyFilters).setOnClickListener(v -> applyFilters());
         findViewById(R.id.btnClearFilters).setOnClickListener(v -> clearFilters());
 
-        findViewById(R.id.btnAddEvent).setOnClickListener(v -> {
+        boolean isAdmin = getIntent().getBooleanExtra("IS_ADMIN", false);
+        View btnAddEvent = findViewById(R.id.btnAddEvent);
+
+        if (!isAdmin) {
+            btnAddEvent.setVisibility(View.GONE);
+        }
+
+        btnAddEvent.setOnClickListener(v -> {
             Intent intent = new Intent(EventListActivity.this, AddEventActivity.class);
             startActivity(intent);
         });

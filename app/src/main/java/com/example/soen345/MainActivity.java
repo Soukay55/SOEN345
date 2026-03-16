@@ -30,9 +30,11 @@ public class MainActivity extends AppCompatActivity {
         welcomeText.setText(isAdmin ? "Welcome, Admin!" : "Welcome, Customer!");
 
         Button btnViewEvents = findViewById(R.id.btnViewEvents);
-        btnViewEvents.setOnClickListener(v ->
-                startActivity(new Intent(this, EventListActivity.class))
-        );
+        btnViewEvents.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EventListActivity.class);
+            intent.putExtra("IS_ADMIN", isAdmin);
+            startActivity(intent);
+        });
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
