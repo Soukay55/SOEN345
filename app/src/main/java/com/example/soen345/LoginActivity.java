@@ -1,6 +1,7 @@
 package com.example.soen345;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,6 +14,8 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 public class LoginActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private EditText emailInput, phoneInput;
+    private static final String PREFS = "SOEN345_PREFS";
+    private static final String KEY_CURRENT_USER_ID = "CURRENT_USER_ID";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,11 +57,17 @@ public class LoginActivity extends AppCompatActivity {
                     User user = document.toObject(User.class);
                     if (matchUser(user, email, phone)) {
                         found = true;
+                        // persists current user document id
+                        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+                        prefs.edit().putString(KEY_CURRENT_USER_ID, document.getId()).apply();
+
                         navigateToMain(user.getIsAdmin());
                         break;
                     }
                 }
                 if (!found) Toast.makeText(this, "User not found!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Failed to fetch users", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -32,6 +32,14 @@
             android:exported="false" />
 
         <activity
+            android:name=".ReservationActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".WalletActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".EventListActivity"
             android:exported="true" />
 

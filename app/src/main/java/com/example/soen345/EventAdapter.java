@@ -16,6 +16,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     public interface OnEventActionListener {
         void onEditClick(Event event);
         void onDeleteClick(Event event);
+        void onReserveClick(Event event);
     }
 
     private final List<Event> events;
@@ -45,15 +46,25 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.location.setText(event.getLocation());
         holder.category.setText(event.getCategory());
 
+        int remaining = event.getRemainingTickets();
+        int capacity = event.getCapacity();
+        holder.ticketsAvailable.setText(String.format("Tickets: %d/%d available", remaining, capacity));
+        holder.ticketsAvailable.setVisibility(View.VISIBLE);
+
         if (isAdmin) {
             holder.btnEditEvent.setVisibility(View.VISIBLE);
             holder.btnDeleteEvent.setVisibility(View.VISIBLE);
+            holder.btnReserve.setVisibility(View.GONE);
 
             holder.btnEditEvent.setOnClickListener(v -> actionListener.onEditClick(event));
             holder.btnDeleteEvent.setOnClickListener(v -> actionListener.onDeleteClick(event));
         } else {
             holder.btnEditEvent.setVisibility(View.GONE);
             holder.btnDeleteEvent.setVisibility(View.GONE);
+            holder.btnReserve.setVisibility(View.VISIBLE);
+            holder.btnReserve.setEnabled(remaining > 0);
+
+            holder.btnReserve.setOnClickListener(v -> actionListener.onReserveClick(event));
         }
     }
 
@@ -63,8 +74,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
     static class EventViewHolder extends RecyclerView.ViewHolder {
-        TextView title, date, location, category;
-        Button btnEditEvent, btnDeleteEvent;
+        TextView title, date, location, category, ticketsAvailable;
+        Button btnEditEvent, btnDeleteEvent, btnReserve;
 
         EventViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -72,8 +83,10 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             date = itemView.findViewById(R.id.eventDate);
             location = itemView.findViewById(R.id.eventLocation);
             category = itemView.findViewById(R.id.eventCategory);
+            ticketsAvailable = itemView.findViewById(R.id.ticketsAvailable);
             btnEditEvent = itemView.findViewById(R.id.btnEditEvent);
             btnDeleteEvent = itemView.findViewById(R.id.btnDeleteEvent);
+            btnReserve = itemView.findViewById(R.id.btnReserve);
         }
     }
 }
