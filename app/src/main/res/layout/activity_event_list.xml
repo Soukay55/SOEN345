@@ -3,106 +3,141 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="12dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Available Events"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="12dp" />
-
-    <Button
-        android:id="@+id/btnAddEvent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Event"
-        android:layout_marginBottom="12dp" />
-
-    <!-- Search bar -->
-    <EditText
-        android:id="@+id/searchInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Search by title..."
-        android:inputType="text"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Filter: Date -->
-    <EditText
-        android:id="@+id/filterDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Filter by date (e.g. 2026-03-15)"
-        android:inputType="text"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Filter: Location -->
-    <EditText
-        android:id="@+id/filterLocation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Filter by location"
-        android:inputType="text"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Filter: Category -->
-    <EditText
-        android:id="@+id/filterCategory"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Filter by category"
-        android:inputType="text"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Buttons row -->
+    <!-- header includes: title + sign out / wallet buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="12dp">
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
 
-        <Button
-            android:id="@+id/btnApplyFilters"
+        <TextView
+            android:id="@+id/headerTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Apply Filters"
-            android:layout_marginEnd="4dp" />
+            android:text="Available Events"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <Button
-            android:id="@+id/btnClearFilters"
-            android:layout_width="0dp"
+            android:id="@+id/btnSignOut"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Clear Filters"
-            android:layout_marginStart="4dp" />
+            android:text="Sign Out"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnMyWallet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Wallet" />
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/emptyText"
+    <!-- Scrollable controls (Add, Search, Filters, Apply/Clear) -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No results found."
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginTop="40dp"
-        android:visibility="gone" />
+        android:fillViewport="true">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btnAddEvent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Add Event"
+                android:layout_marginBottom="12dp" />
+
+            <EditText
+                android:id="@+id/searchInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Search by title..."
+                android:inputType="text"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/filterDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Filter by date (e.g. 2026-03-15)"
+                android:inputType="text"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/filterLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Filter by location"
+                android:inputType="text"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/filterCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Filter by category"
+                android:inputType="text"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <Button
+                    android:id="@+id/btnApplyFilters"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Apply Filters"
+                    android:layout_marginEnd="4dp" />
+
+                <Button
+                    android:id="@+id/btnClearFilters"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Clear Filters"
+                    android:layout_marginStart="4dp" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/emptyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="No results found."
+                android:textSize="16sp"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Spinner and list fill remaining space -->
     <ProgressBar
         android:id="@+id/loadingSpinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="8dp"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/eventsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:clipToPadding="false" />
 
 </LinearLayout>

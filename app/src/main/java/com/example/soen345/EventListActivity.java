@@ -60,6 +60,11 @@ public class EventListActivity extends AppCompatActivity {
             public void onDeleteClick(Event event) {
                 showDeleteConfirmation(event);
             }
+
+            @Override
+            public void onReserveClick(Event event) {
+                openReservationScreen(event);
+            }
         });
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -77,6 +82,18 @@ public class EventListActivity extends AppCompatActivity {
             Intent intent = new Intent(EventListActivity.this, AddEventActivity.class);
             startActivity(intent);
         });
+
+        // sign out button: clears persisted user id and returns to login
+        findViewById(R.id.btnSignOut).setOnClickListener(v -> {
+            getSharedPreferences("SOEN345_PREFS", MODE_PRIVATE).edit().remove("CURRENT_USER_ID").apply();
+            startActivity(new Intent(EventListActivity.this, LoginActivity.class));
+            finish();
+        });
+
+        // hide wallet for admins
+        View myWalletBtn = findViewById(R.id.btnMyWallet);
+        if (isAdmin) myWalletBtn.setVisibility(View.GONE);
+        else myWalletBtn.setOnClickListener(v -> startActivity(new Intent(EventListActivity.this, WalletActivity.class)));
 
         loadEvents();
     }
@@ -288,5 +305,11 @@ public class EventListActivity extends AppCompatActivity {
         }
 
         return updated;
+    }
+
+    private void openReservationScreen(Event event) {
+        Intent intent = new Intent(EventListActivity.this, ReservationActivity.class);
+        intent.putExtra("eventId", event.getId());
+        startActivity(intent);
     }
 }

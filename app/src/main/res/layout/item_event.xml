@@ -43,6 +43,23 @@
             android:textSize="12sp"
             android:textStyle="italic" />
 
+        <TextView
+            android:id="@+id/ticketsAvailable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:visibility="visible" />
+
+        <Button
+            android:id="@+id/btnReserve"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Reserve Tickets"
+            android:visibility="gone" />
+
         <Button
             android:id="@+id/btnEditEvent"
             android:layout_width="match_parent"
