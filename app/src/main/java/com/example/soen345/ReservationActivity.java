@@ -1,19 +1,14 @@
 package com.example.soen345;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -27,13 +22,6 @@ public class ReservationActivity extends AppCompatActivity {
     private TextView eventDetailsText, ticketsAvailableDisplay;
     private Button btnConfirmReservation;
 
-    private final ActivityResultLauncher<String> smsPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (!isGranted) {
-                    Toast.makeText(this, "SMS permission denied", Toast.LENGTH_SHORT).show();
-                }
-            });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,17 +34,18 @@ public class ReservationActivity extends AppCompatActivity {
         ticketsAvailableDisplay = findViewById(R.id.ticketsAvailableDisplay);
         btnConfirmReservation = findViewById(R.id.btnConfirmReservation);
 
-        ensureSmsPermission();
-
         String eventId = getIntent().getStringExtra("eventId");
-        if (eventId == null) {
+        if (eventId == null || eventId.trim().isEmpty()) {
             Toast.makeText(this, "No event provided", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
         db.collection("events").document(eventId).addSnapshotListener((snap, err) -> {
-            if (err != null) return;
+            if (err != null) {
+                return;
+            }
+
             if (snap != null && snap.exists()) {
                 event = snap.toObject(Event.class);
                 if (event != null) {
@@ -69,17 +58,18 @@ public class ReservationActivity extends AppCompatActivity {
         btnConfirmReservation.setOnClickListener(v -> onConfirm());
     }
 
-    private void ensureSmsPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
-            smsPermissionLauncher.launch(Manifest.permission.SEND_SMS);
-        }
-    }
-
     private void updateDisplay() {
-        if (event == null) return;
-        eventDetailsText.setText(event.getTitle() + "\n" + event.getDate() + "\n" + event.getLocation());
-        ticketsAvailableDisplay.setText("Available: " + event.getRemainingTickets() + " / " + event.getCapacity());
+        if (event == null) {
+            return;
+        }
+
+        eventDetailsText.setText(
+                event.getTitle() + "\n" + event.getDate() + "\n" + event.getLocation()
+        );
+
+        ticketsAvailableDisplay.setText(
+                "Available: " + event.getRemainingTickets() + " / " + event.getCapacity()
+        );
     }
 
     private void onConfirm() {
@@ -90,6 +80,7 @@ public class ReservationActivity extends AppCompatActivity {
 
         String s = ticketCountInput.getText().toString().trim();
         int tickets;
+
         try {
             tickets = Integer.parseInt(s);
         } catch (NumberFormatException e) {
@@ -105,7 +96,7 @@ public class ReservationActivity extends AppCompatActivity {
         String uid = getSharedPreferences("SOEN345_PREFS", MODE_PRIVATE)
                 .getString("CURRENT_USER_ID", null);
 
-        if (uid == null) {
+        if (uid == null || uid.trim().isEmpty()) {
             Toast.makeText(this, "Not logged in", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -114,20 +105,20 @@ public class ReservationActivity extends AppCompatActivity {
         final String currentUserId = uid;
         final String eventId = event.getId();
         final DocumentReference eventRef = db.collection("events").document(eventId);
-        final DocumentReference reservationsRef = db.collection("reservations").document();
+        final DocumentReference reservationRef = db.collection("reservations").document();
 
         db.runTransaction(tx -> {
-            DocumentSnapshot sEvent = tx.get(eventRef);
+            DocumentSnapshot eventSnap = tx.get(eventRef);
 
-            if (!sEvent.exists()) {
+            if (!eventSnap.exists()) {
                 throw new FirebaseFirestoreException(
                         "Event missing",
                         FirebaseFirestoreException.Code.ABORTED
                 );
             }
 
-            Long remL = sEvent.getLong("remainingTickets");
-            int remaining = remL == null ? 0 : remL.intValue();
+            Long remainingLong = eventSnap.getLong("remainingTickets");
+            int remaining = remainingLong == null ? 0 : remainingLong.intValue();
 
             if (remaining < ticketsRequested) {
                 throw new FirebaseFirestoreException(
@@ -136,62 +127,37 @@ public class ReservationActivity extends AppCompatActivity {
                 );
             }
 
-            Reservation r = new Reservation();
-            r.setUserId(currentUserId);
-            r.setEventId(eventId);
-            r.setNumberOfTickets(ticketsRequested);
-            r.setReservationDate(new java.util.Date());
-            r.setStatus("confirmed");
+            Reservation reservation = new Reservation();
+            reservation.setUserId(currentUserId);
+            reservation.setEventId(eventId);
+            reservation.setNumberOfTickets(ticketsRequested);
+            reservation.setReservationDate(new java.util.Date());
+            reservation.setStatus("confirmed");
 
-            tx.set(reservationsRef, r);
+            tx.set(reservationRef, reservation);
             tx.update(eventRef, "remainingTickets", remaining - ticketsRequested);
 
             return null;
         }).addOnSuccessListener(a -> {
-            sendReservationConfirmation(currentUserId, ticketsRequested);
+            NotificationService.notifyBookingConfirmed(
+                    db,
+                    currentUserId,
+                    event,
+                    (success, error) -> {
+                        if (!success) {
+                            Toast.makeText(
+                                    ReservationActivity.this,
+                                    "Confirmation may be delayed",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+
+                        showReservationSuccessDialog(ticketsRequested);
+                    }
+            );
         }).addOnFailureListener(e -> {
-            String m = e.getMessage() != null ? e.getMessage() : "Reservation failed";
-            Toast.makeText(this, m, Toast.LENGTH_LONG).show();
-        });
-    }
-
-    private void sendReservationConfirmation(String currentUserId, int ticketsRequested) {
-        UserContactHelper.getCurrentUser(db, currentUserId, new UserContactHelper.ContactCallback() {
-            @Override
-            public void onLoaded(User user) {
-                String phone = user != null ? user.getPhoneNumber() : null;
-                String message = "Your reservation is confirmed for "
-                        + event.getTitle()
-                        + ". Tickets reserved: "
-                        + ticketsRequested
-                        + ".";
-
-                boolean sent = NotificationService.sendSms(
-                        ReservationActivity.this,
-                        phone,
-                        message
-                );
-
-                if (!sent) {
-                    Toast.makeText(
-                            ReservationActivity.this,
-                            "Confirmation may be delayed",
-                            Toast.LENGTH_SHORT
-                    ).show();
-                }
-
-                showReservationSuccessDialog(ticketsRequested);
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Toast.makeText(
-                        ReservationActivity.this,
-                        "Confirmation may be delayed",
-                        Toast.LENGTH_SHORT
-                ).show();
-                showReservationSuccessDialog(ticketsRequested);
-            }
+            String message = e.getMessage() != null ? e.getMessage() : "Reservation failed";
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         });
     }
 
@@ -199,7 +165,7 @@ public class ReservationActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Reservation confirmed")
                 .setMessage("You reserved " + ticketsRequested + " ticket(s) for " + event.getTitle())
-                .setPositiveButton("OK", (d, w) -> {
+                .setPositiveButton("OK", (dialog, which) -> {
                     Intent intent = new Intent(this, EventListActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
