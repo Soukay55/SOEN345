@@ -25,6 +25,7 @@ public class TicketReservationUnitTest {
         Event e = new Event("evt_1", "Jazz Night", "2026-04-10", "Montreal", "Music", capacity);
         e.setRemainingTickets(remaining);
         return e;
+    }
 
     @Test
     public void TC_RES_U_01_zeroTickets_isInvalid() {
@@ -131,4 +132,5 @@ public class TicketReservationUnitTest {
         assertTrue("Error should state only 7 remaining", r.message.contains("7"));
     }
 }
+
 
