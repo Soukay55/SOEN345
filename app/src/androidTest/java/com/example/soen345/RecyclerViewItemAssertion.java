@@ -68,6 +68,27 @@ public final class RecyclerViewItemAssertion {
         };
     }
 
+    public static ViewAssertion itemAtPositionHasVisibleChild(int position, @IdRes int childViewId) {
+        return (view, noViewFoundException) -> {
+            if (noViewFoundException != null) throw noViewFoundException;
+            RecyclerView recyclerView = (RecyclerView) view;
+            recyclerView.scrollToPosition(position);
+            recyclerView.measure(
+                    View.MeasureSpec.makeMeasureSpec(recyclerView.getWidth(), View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(recyclerView.getHeight(), View.MeasureSpec.EXACTLY)
+            );
+            recyclerView.layout(recyclerView.getLeft(), recyclerView.getTop(),
+                    recyclerView.getRight(), recyclerView.getBottom());
+            RecyclerView.ViewHolder holder = recyclerView.findViewHolderForAdapterPosition(position);
+            if (holder == null) throw new AssertionError("No ViewHolder at position: " + position);
+            View child = holder.itemView.findViewById(childViewId);
+            if (child == null) throw new AssertionError("Child view " + childViewId + " not found");
+            if (child.getVisibility() != View.VISIBLE) {
+                throw new AssertionError("Child view " + childViewId + " is not VISIBLE");
+            }
+        };
+    }
+
     public static ViewAssertion doesNotContainItemWithText(@IdRes int textViewId, String unexpectedText) {
         return (view, noViewFoundException) -> {
             if (noViewFoundException != null) throw noViewFoundException;
