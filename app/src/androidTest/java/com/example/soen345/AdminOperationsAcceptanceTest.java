@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class AdminOperationsAcceptanceTest {
@@ -86,7 +87,6 @@ public class AdminOperationsAcceptanceTest {
     }
 
 
-
     @Test
     public void TC_ADM_A_01_adminLogin_validEmail_showsWelcomeAdmin()
             throws InterruptedException {
@@ -100,7 +100,7 @@ public class AdminOperationsAcceptanceTest {
         onView(withId(R.id.welcomeText))
                 .check(matches(withText("Welcome, Admin!")));
     }
-
+  
     @Test
     public void TC_ADM_A_02_adminLogin_viewEvents_adminControlsVisible()
             throws InterruptedException {
@@ -110,7 +110,7 @@ public class AdminOperationsAcceptanceTest {
         Thread.sleep(9000);
 
         onView(withId(R.id.btnViewEvents)).perform(click());
-        Thread.sleep(5000); // wait for event list to load
+        Thread.sleep(5000); 
 
         onView(withId(R.id.btnAddEvent))
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.VISIBLE)));
@@ -121,7 +121,7 @@ public class AdminOperationsAcceptanceTest {
                 .check(RecyclerViewItemAssertion.itemAtPositionHasVisibleChild(0, R.id.btnDeleteEvent));
     }
 
-    
+
     @Test
     public void TC_ADM_A_03_adminLogin_viewEvents_walletButtonHidden()
             throws InterruptedException {
@@ -137,7 +137,7 @@ public class AdminOperationsAcceptanceTest {
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.GONE)));
     }
 
- 
+
     @Test
     public void TC_ADM_A_04_adminFullFlow_addEvent_returnsToEventList()
             throws InterruptedException {
@@ -167,6 +167,7 @@ public class AdminOperationsAcceptanceTest {
         onView(withId(R.id.btnAddEvent)).check(matches(isDisplayed()));
     }
 
+   
     @Test
     public void TC_ADM_A_05_adminFullFlow_editEvent_titleUpdatedInFirestore()
             throws InterruptedException {
@@ -215,7 +216,7 @@ public class AdminOperationsAcceptanceTest {
         restoreLatch.await(10, TimeUnit.SECONDS);
     }
 
-  
+
     @Test
     public void TC_ADM_A_06_adminFullFlow_deleteEvent_eventRemovedFromList()
             throws InterruptedException {
@@ -266,7 +267,7 @@ public class AdminOperationsAcceptanceTest {
                         R.id.eventTitle, deleteTitle));
     }
 
-
+ 
     @Test
     public void TC_ADM_A_07_customerLogin_viewEvents_noAdminControls()
             throws InterruptedException {
@@ -284,7 +285,6 @@ public class AdminOperationsAcceptanceTest {
         onView(withId(R.id.eventsRecyclerView))
                 .check(RecyclerViewItemAssertion.itemAtPositionHasVisibleChild(0, R.id.btnReserve));
     }
-
 
     @Test
     public void TC_ADM_A_08_invalidLogin_unknownEmail_staysOnLoginScreen()
