@@ -32,26 +32,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Acceptance tests for the Admin Operations user story.
- *
- * These tests drive the full end-to-end workflow starting from the Login screen,
- * exactly as a real administrator would use the application. They validate:
- *   - Administrator account access (login authentication)
- *   - Full administrative workflow (add / edit / delete events)
- *   - Admin-specific UI controls (visible/hidden elements by role)
- *   - Non-admin experience is unaffected
- *
- * Test cases:
- *   TC-ADM-A-01  Admin login with valid email → lands on "Welcome, Admin!" screen
- *   TC-ADM-A-02  Admin login → View Events → admin controls visible (Add Event, Edit, Delete)
- *   TC-ADM-A-03  Admin login → View Events → Wallet button hidden
- *   TC-ADM-A-04  Full add-event flow: login → view events → add event → returns to event list
- *   TC-ADM-A-05  Full edit-event flow: login → view events → edit seed event → title updated
- *   TC-ADM-A-06  Full delete-event flow: login → view events → delete event → event gone
- *   TC-ADM-A-07  Non-admin login → View Events → Add Event button hidden, Reserve button visible
- *   TC-ADM-A-08  Invalid login (unknown email) → stays on login screen
- */
 @RunWith(AndroidJUnit4.class)
 @LargeTest
 public class AdminOperationsAcceptanceTest {
@@ -73,7 +53,6 @@ public class AdminOperationsAcceptanceTest {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         CountDownLatch latch = new CountDownLatch(3);
 
-        // Admin user
         Map<String, Object> admin = new HashMap<>();
         admin.put("email",       ADMIN_EMAIL);
         admin.put("phoneNumber", "5140001234");
@@ -82,7 +61,6 @@ public class AdminOperationsAcceptanceTest {
                 .set(admin, SetOptions.merge())
                 .addOnCompleteListener(t -> latch.countDown());
 
-        // Regular customer
         Map<String, Object> customer = new HashMap<>();
         customer.put("email",       CUSTOMER_EMAIL);
         customer.put("phoneNumber", "5140005678");
@@ -91,7 +69,6 @@ public class AdminOperationsAcceptanceTest {
                 .set(customer, SetOptions.merge())
                 .addOnCompleteListener(t -> latch.countDown());
 
-        // Seed event for edit/delete/visibility tests
         Map<String, Object> event = new HashMap<>();
         event.put("id",               SEED_EVENT_ID);
         event.put("title",            SEED_EVENT_TITLE);
@@ -108,16 +85,8 @@ public class AdminOperationsAcceptanceTest {
                 latch.await(20, TimeUnit.SECONDS));
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-01
-    // -------------------------------------------------------------------------
 
-    /**
-     * Scenario: Administrator logs in with a valid email address.
-     * Given the login screen is displayed
-     * When the admin enters their registered email and submits
-     * Then the application navigates to the main screen showing "Welcome, Admin!"
-     */
+
     @Test
     public void TC_ADM_A_01_adminLogin_validEmail_showsWelcomeAdmin()
             throws InterruptedException {
@@ -126,23 +95,12 @@ public class AdminOperationsAcceptanceTest {
 
         onView(withId(R.id.btnLoginSubmit)).perform(click());
 
-        Thread.sleep(9000); // wait for Firestore user lookup + navigation
+        Thread.sleep(9000); 
 
         onView(withId(R.id.welcomeText))
                 .check(matches(withText("Welcome, Admin!")));
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-02
-    // -------------------------------------------------------------------------
-
-    /**
-     * Scenario: Administrator navigates to the event list and sees admin controls.
-     * Given the admin is logged in and on the main screen
-     * When the admin taps "View Available Events"
-     * Then the event list shows the "Add Event" button
-     *  And each event card shows "Edit Event" and "Delete Event" buttons
-     */
     @Test
     public void TC_ADM_A_02_adminLogin_viewEvents_adminControlsVisible()
             throws InterruptedException {
@@ -163,15 +121,7 @@ public class AdminOperationsAcceptanceTest {
                 .check(RecyclerViewItemAssertion.itemAtPositionHasVisibleChild(0, R.id.btnDeleteEvent));
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-03
-    // -------------------------------------------------------------------------
-
-    /**
-     * Scenario: The "My Wallet" button is not shown to administrators.
-     * Given the admin is on the event list screen
-     * Then the "My Wallet" button must not be visible
-     */
+    
     @Test
     public void TC_ADM_A_03_adminLogin_viewEvents_walletButtonHidden()
             throws InterruptedException {
@@ -187,17 +137,7 @@ public class AdminOperationsAcceptanceTest {
                 .check(matches(withEffectiveVisibility(ViewMatchers.Visibility.GONE)));
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-04
-    // -------------------------------------------------------------------------
-
-    /**
-     * Scenario: Administrator adds a new event through the full UI flow.
-     * Given the admin is on the event list screen
-     * When the admin taps "Add Event", fills in all required fields, and saves
-     * Then the application returns to the event list screen
-     *  And the "Add Event" button is still visible (confirming the admin is on the list)
-     */
+ 
     @Test
     public void TC_ADM_A_04_adminFullFlow_addEvent_returnsToEventList()
             throws InterruptedException {
@@ -222,22 +162,11 @@ public class AdminOperationsAcceptanceTest {
                 .perform(replaceText("AcceptCat"), closeSoftKeyboard());
 
         onView(withId(R.id.btnSaveEvent)).perform(click());
-        Thread.sleep(5000); // wait for Firestore write + finish()
+        Thread.sleep(5000);
 
-        // Back on EventListActivity — Add Event button confirms we are on the list screen
         onView(withId(R.id.btnAddEvent)).check(matches(isDisplayed()));
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-05
-    // -------------------------------------------------------------------------
-
-    /**
-     * Scenario: Administrator edits an existing event through the full UI flow.
-     * Given the admin is on the event list and the seed event is visible
-     * When the admin taps "Edit" on the seed event card and changes the title
-     * Then Firestore reflects the updated title
-     */
     @Test
     public void TC_ADM_A_05_adminFullFlow_editEvent_titleUpdatedInFirestore()
             throws InterruptedException {
@@ -249,7 +178,6 @@ public class AdminOperationsAcceptanceTest {
         onView(withId(R.id.btnViewEvents)).perform(click());
         Thread.sleep(5000);
 
-        // Confirm seed event is present, then click its Edit button
         onView(withId(R.id.eventsRecyclerView))
                 .check(RecyclerViewItemAssertion.containsItemWithText(
                         R.id.eventTitle, SEED_EVENT_TITLE));
@@ -266,7 +194,6 @@ public class AdminOperationsAcceptanceTest {
         onView(withId(R.id.btnSaveEvent)).perform(click());
         Thread.sleep(5000);
 
-        // Verify Firestore was updated
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         CountDownLatch latch = new CountDownLatch(1);
         final boolean[] updated = {false};
@@ -279,7 +206,6 @@ public class AdminOperationsAcceptanceTest {
         latch.await(10, TimeUnit.SECONDS);
         assertTrue("Firestore title was not updated by acceptance edit flow", updated[0]);
 
-        // Restore the seed event so subsequent tests are not affected
         CountDownLatch restoreLatch = new CountDownLatch(1);
         Map<String, Object> restore = new HashMap<>();
         restore.put("title", SEED_EVENT_TITLE);
@@ -289,20 +215,10 @@ public class AdminOperationsAcceptanceTest {
         restoreLatch.await(10, TimeUnit.SECONDS);
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-06
-    // -------------------------------------------------------------------------
-
-    /**
-     * Scenario: Administrator deletes an event through the full UI flow.
-     * Given the admin is on the event list and a disposable event is present
-     * When the admin taps "Delete" and confirms the dialog
-     * Then the event is no longer visible in the list
-     */
+  
     @Test
     public void TC_ADM_A_06_adminFullFlow_deleteEvent_eventRemovedFromList()
             throws InterruptedException {
-        // Seed a disposable event just for this test
         String deleteId    = "accept_delete_target";
         String deleteTitle = "Accept Delete Me";
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -350,17 +266,7 @@ public class AdminOperationsAcceptanceTest {
                         R.id.eventTitle, deleteTitle));
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-07
-    // -------------------------------------------------------------------------
 
-    /**
-     * Scenario: Non-admin user logs in and sees customer-specific UI.
-     * Given a regular customer logs in
-     * When they navigate to the event list
-     * Then the "Add Event" button is hidden
-     *  And the "Reserve Tickets" button is visible on event cards
-     */
     @Test
     public void TC_ADM_A_07_customerLogin_viewEvents_noAdminControls()
             throws InterruptedException {
@@ -379,16 +285,7 @@ public class AdminOperationsAcceptanceTest {
                 .check(RecyclerViewItemAssertion.itemAtPositionHasVisibleChild(0, R.id.btnReserve));
     }
 
-    // -------------------------------------------------------------------------
-    // TC-ADM-A-08
-    // -------------------------------------------------------------------------
 
-    /**
-     * Scenario: Login attempt with an unregistered email stays on the login screen.
-     * Given the login screen is displayed
-     * When the user enters an email that does not exist in Firestore
-     * Then the application remains on the login screen
-     */
     @Test
     public void TC_ADM_A_08_invalidLogin_unknownEmail_staysOnLoginScreen()
             throws InterruptedException {
