@@ -100,8 +100,7 @@ public class AdminOperationsAcceptanceTest {
         onView(withId(R.id.welcomeText))
                 .check(matches(withText("Welcome, Admin!")));
     }
-
-     */
+  
     @Test
     public void TC_ADM_A_02_adminLogin_viewEvents_adminControlsVisible()
             throws InterruptedException {
@@ -163,7 +162,7 @@ public class AdminOperationsAcceptanceTest {
                 .perform(replaceText("AcceptCat"), closeSoftKeyboard());
 
         onView(withId(R.id.btnSaveEvent)).perform(click());
-        Thread.sleep(5000); 
+        Thread.sleep(5000);
 
         onView(withId(R.id.btnAddEvent)).check(matches(isDisplayed()));
     }
